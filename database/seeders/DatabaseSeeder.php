@@ -52,15 +52,23 @@ class DatabaseSeeder extends Seeder
     /* -------------------------------------------------------------------------- */
     /*  CUSTOMERS                                                                 */
     /* -------------------------------------------------------------------------- */
-    private function createCustomers()
+        private function createCustomers()
     {
-        for ($i = 1; $i <= 5; $i++) {
+        $customers = [
+            ['Nala',   'Nala@gmail.com',    '087747828015'],
+            ['Nanang',   'Nanang@gmail.com',    '087770417705'],
+            ['Ibnu',  'Ibnu@gmail.com',   '083842519404'],
+            ['Afrizal',  'Afrizal@gmail.com',   '083128256817'],
+            ['Ian',  'Ian@gmail.com',   '08977444448'],
+        ];
+
+        foreach ($customers as $c) {
             User::create([
-                'name' => "Customer $i",
-                'email' => "customer$i@mail.com",
-                'phone' => "0887000000$i",
+                'name'     => $c[0],
+                'email'    => $c[1],
+                'phone'    => $c[2],
                 'password' => Hash::make('password'),
-                'role' => 'customer',
+                'role'     => 'customer',
             ]);
         }
     }
