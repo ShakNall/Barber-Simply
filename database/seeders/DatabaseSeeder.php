@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
         User::create([
             'name' => 'Admin One',
             'email' => 'admin@barbershop.com',
-            'phone' => '08000000002',
+            'phone' => '085169765567',
             'password' => Hash::make('password'),
             'role' => 'admin',
         ]);
