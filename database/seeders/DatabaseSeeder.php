@@ -27,27 +27,12 @@ class DatabaseSeeder extends Seeder
         Shift::truncate();
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-        $this->createOwner();
         $this->createAdmins();
         $this->createCustomers();
         $this->createBarbers();
         $this->createServices();
         $this->createShifts();
         $this->createBarberWeeklyShifts();
-    }
-
-    /* -------------------------------------------------------------------------- */
-    /*  OWNER                                                                     */
-    /* -------------------------------------------------------------------------- */
-    private function createOwner()
-    {
-        User::create([
-            'name' => 'Barbershop Owner',
-            'email' => 'owner@barbershop.com',
-            'phone' => '08000000001',
-            'password' => Hash::make('password'),
-            'role' => 'owner',
-        ]);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -86,20 +71,18 @@ class DatabaseSeeder extends Seeder
     private function createBarbers()
     {
         $barbers = [
-            ['BUDI',   'budi@barbershop.com',   'Senior Barber', 55000],
-            ['DAFI',   'dafi@barbershop.com',   'Barber',        45000],
-            ['ABED',   'abed@barbershop.com',   'Barber',        45000],
-            ['ADI',    'adi@barbershop.com',    'Barber',        45000],
-            ['ARI',    'ari@barbershop.com',    'Barber',        40000],
-            ['BIMBIM', 'bimbim@barbershop.com', 'Barber',        40000],
-            ['JATI',   'jati@barbershop.com',   'Junior Barber', 25000],
+            ['BUDI',   'budi@barbershop.com',   'Senior Barber', '085213814968',    65000],
+            ['ADI',    'adi@barbershop.com',    'Barber', '081328156587',           55000],
+            ['DAFI',   'dafi@barbershop.com',   'Barber', '085728251307',           55000],
+            ['ARI',    'ari@barbershop.com',    'Barber', '081657436226',           50000],
+            ['JATI',   'jati@barbershop.com',   'Junior Barber','088219729020',     40000],
         ];
 
         foreach ($barbers as $index => $b) {
             $user = User::create([
                 'name'     => 'By ' . $b[0],
                 'email'    => $b[1],
-                'phone'    => '081600000' . ($index + 1),
+                'phone'    => $b[3],
                 'password' => Hash::make('password'),
                 'role'     => 'barber',
             ]);
@@ -108,7 +91,7 @@ class DatabaseSeeder extends Seeder
                 'user_id'    => $user->id,
                 'nickname'   => $b[0],
                 'speciality' => $b[2],
-                'price'      => $b[3],
+                'price'      => $b[4],
                 'is_active'  => true,
             ]);
         }
