@@ -9,7 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Menambahkan kolom remember_token
             $table->rememberToken()->after('password');
         });
     }
