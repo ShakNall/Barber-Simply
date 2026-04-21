@@ -1,65 +1,104 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
 
-@section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Reset Password') }}</div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Reset Password</title>
 
-                <div class="card-body">
-                    <form method="POST" action="{{ route('password.update') }}">
-                        @csrf
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-                        <input type="hidden" name="token" value="{{ $token }}">
+    <style>
+        body {
+            background: #fff;
+        }
 
-                        <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
+        .auth-box {
+            max-width: 420px;
+            margin: auto;
+            padding-top: 60px;
+        }
 
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ $email ?? old('email') }}" required autocomplete="email" autofocus>
+        .btn-black {
+            background: #000;
+            color: #fff;
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
 
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
+        .btn-black:hover {
+            background: #111;
+            color: #fff;
+        }
 
-                        <div class="row mb-3">
-                            <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>
+        .form-control {
+            height: 48px;
+            border-radius: 6px;
+        }
 
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
+        .logo {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+        }
 
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
+        a {
+            text-decoration: none;
+        }
+    </style>
+</head>
 
-                        <div class="row mb-3">
-                            <label for="password-confirm" class="col-md-4 col-form-label text-md-end">{{ __('Confirm Password') }}</label>
+<body>
 
-                            <div class="col-md-6">
-                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
-                            </div>
-                        </div>
+    <div class="auth-box text-center px-3">
 
-                        <div class="row mb-0">
-                            <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __('Reset Password') }}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+        <img src="/logo.png" class="logo mb-3" alt="Logo">
+
+        <h4 class="fw-bold">Reset Password</h4>
+        <p class="text-muted">
+            Please enter your new password below.
+        </p>
+
+        <form method="POST" action="{{ route('password.update') }}">
+            @csrf
+
+            <input type="hidden" name="token" value="{{ $token }}">
+
+            <div class="mb-3 text-start">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                    value="{{ $email ?? old('email') }}" required autocomplete="email" readonly>
+                @error('email')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
-        </div>
+
+            <div class="mb-3 text-start">
+                <label class="form-label">New Password</label>
+                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
+                    placeholder="Enter new password" required autocomplete="new-password" autofocus>
+                @error('password')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="mb-4 text-start">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" name="password_confirmation" class="form-control"
+                    placeholder="Repeat new password" required autocomplete="new-password">
+            </div>
+
+            <button type="submit" class="btn btn-black">
+                Reset Password
+            </button>
+        </form>
+
     </div>
-</div>
-@endsection
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

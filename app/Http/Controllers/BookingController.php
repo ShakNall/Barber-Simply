@@ -35,81 +35,111 @@ class BookingController extends Controller
     /* =============================
         BARBER TERSEDIA BY TANGGAL
     ============================== */
-    public function getAvailableBarbers(Request $request)
-    {
-        $request->validate([
-            'date' => 'required|date',
-        ]);
+   public function getAvailableBarbers(Request $request)
+{
+    $request->validate([
+        'date' => 'required|date',
+    ]);
 
-        [$weekNumber, $day] = $this->resolveWeekAndDay($request->date);
+    $date = \Carbon\Carbon::parse($request->date);
+    
+    $daysMap = [
+        'Sunday' => 'minggu',
+        'Monday' => 'senin',
+        'Tuesday' => 'selasa',
+        'Wednesday' => 'rabu',
+        'Thursday' => 'kamis',
+        'Friday' => 'jumat',
+        'Saturday' => 'sabtu',
+    ];
 
-        $barbers = Barber::whereHas('shifts', function ($q) use ($weekNumber, $day) {
-            $q->where('week_number', $weekNumber)
-                ->where('day_of_week', $day)
-                ->where('is_day_off', false);
-        })->with('user')->get();
-
-        return response()->json($barbers);
+    $day = $daysMap[$date->format('l')];
+    
+    $startOfMonth = $date->copy()->startOfMonth();
+    $weekNumber = (int) ceil(($date->day + $startOfMonth->dayOfWeek) / 7);
+    
+    if ($weekNumber > 4) {
+        $weekNumber = 4;
     }
 
+    $barbers = Barber::whereHas('shifts', function ($q) use ($weekNumber, $day) {
+        $q->where('week_number', $weekNumber)
+            ->where('day_of_week', $day)
+            ->where('is_day_off', false);
+    })->with('user')->get();
+
+    return response()->json($barbers);
+}
 
     /* =============================
         SLOT JAM
     ============================== */
-    public function getAvailableSlots(Request $request)
-    {
-        $request->validate([
-            'barber_id' => 'required|exists:barbers,id',
-            'date' => 'required|date',
-        ]);
+  public function getAvailableSlots(Request $request)
+{
+    $request->validate([
+        'barber_id' => 'required|exists:barbers,id',
+        'date' => 'required|date',
+    ]);
 
-        [$weekNumber, $day] = $this->resolveWeekAndDay($request->date);
+    $date = \Carbon\Carbon::parse($request->date);
+    
+    $daysMap = [
+        'Sunday' => 'minggu',
+        'Monday' => 'senin',
+        'Tuesday' => 'selasa',
+        'Wednesday' => 'rabu',
+        'Thursday' => 'kamis',
+        'Friday' => 'jumat',
+        'Saturday' => 'sabtu',
+    ];
 
-        $shift = BarberShift::where('barber_id', $request->barber_id)
-            ->where('week_number', $weekNumber)
-            ->where('day_of_week', $day)
-            ->where('is_day_off', false)
-            ->first();
+    $day = $daysMap[$date->format('l')];
+    
+    $startOfMonth = $date->copy()->startOfMonth();
+    $weekNumber = (int) ceil(($date->day + $startOfMonth->dayOfWeek) / 7);
+    
+    if ($weekNumber > 4) {
+        $weekNumber = 4;
+    }
 
-        if (!$shift) {
-            return response()->json([
-                'slots' => [],
-                'booked' => [],
-            ]);
-        }
+    $shift = BarberShift::where('barber_id', $request->barber_id)
+        ->where('week_number', $weekNumber)
+        ->where('day_of_week', $day)
+        ->where('is_day_off', false)
+        ->first();
 
-        /* =========================
-           1. SLOT PER 1 JAM
-        ========================= */
-        $start = Carbon::parse($shift->start_time)->minute(0);
-        $end = Carbon::parse($shift->end_time);
-
-        $slots = [];
-        $cursor = $start->copy();
-
-        while ($cursor->lt($end)) {
-            $slots[] = $cursor->format('H:i');
-            $cursor->addHour();
-        }
-
-        /* =========================
-           2. BOOKED SLOT (FLOOR JAM)
-        ========================= */
-        $booked = Booking::where('barber_id', $request->barber_id)
-            ->where('date', $request->date)
-            ->pluck('time')
-            ->map(function ($time) {
-                return Carbon::parse($time)->minute(0)->format('H:i');
-            })
-            ->unique()
-            ->values();
-
+    if (!$shift) {
         return response()->json([
-            'allSlots' => $slots,
-            'bookedSlots' => $booked,
+            'allSlots' => [],
+            'bookedSlots' => [],
         ]);
     }
 
+    $start = \Carbon\Carbon::parse($shift->start_time)->minute(0);
+    $end = \Carbon\Carbon::parse($shift->end_time);
+
+    $slots = [];
+    $cursor = $start->copy();
+
+    while ($cursor->lt($end)) {
+        $slots[] = $cursor->format('H:i');
+        $cursor->addHour();
+    }
+
+    $booked = \App\Models\Booking::where('barber_id', $request->barber_id)
+        ->where('date', $request->date)
+        ->pluck('time')
+        ->map(function ($time) {
+            return \Carbon\Carbon::parse($time)->minute(0)->format('H:i');
+        })
+        ->unique()
+        ->values();
+
+    return response()->json([
+        'allSlots' => $slots,
+        'bookedSlots' => $booked,
+    ]);
+}
     public function store(Request $request)
     {
         $request->validate([

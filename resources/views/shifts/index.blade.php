@@ -232,9 +232,9 @@
 
                         <thead>
                             <tr>
-                                <th class="text-start ps-4">Barber</th>
+                                <th class="text-start font-weight-bold ps-4">Barber</th>
                                 @foreach ($days as $day)
-                                    <th>{{ ucfirst(substr($day, 0, 3)) }}</th>
+                                    <th>{{ $day }}</th>
                                 @endforeach
                             </tr>
                         </thead>
@@ -243,7 +243,7 @@
                             @foreach ($barbers as $barber)
                                 <tr>
                                     {{-- BARBER --}}
-                                    <td class="text-start fw-semibold ps-4">
+                                    <td class="text-start text-nowrap fw-semibold ps-4">
                                         <span class="avatar-soft rounded-circle me-2"
                                             style="width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center">
                                             {{ inisial($barber->user->name) }}

@@ -9,8 +9,6 @@ class ShiftSeeder extends Seeder
 {
     public function run(): void
     {
-        Shift::truncate();
-
         Shift::insert([
             [
                 'name' => 'Shift 1',

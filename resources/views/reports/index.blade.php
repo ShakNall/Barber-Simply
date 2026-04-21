@@ -65,7 +65,7 @@
 
         {{-- INCOME PER SERVICE --}}
         <div class="card shadow-sm p-3 mb-4">
-            <h5 class="fw-bold">Pendapatan per Service</h5>
+            <h5 class="fw-bold">Pendapatan Layanan</h5>
 
             @foreach ($incomePerService as $s)
                 <div class="border-bottom py-2 d-flex justify-content-between">

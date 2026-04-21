@@ -55,7 +55,7 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-muted pr-0 mt-2" href="#" id="navbarDropdownMenuLink"
                         role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        {{ Auth::user()->name }}
+                        {{ Auth::user()->name }} 
                     </a>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
                         <a href="{{ route('logout') }}" class="dropdown-item"
