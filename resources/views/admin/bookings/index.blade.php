@@ -147,19 +147,27 @@
                         <label>Nama Customer</label>
                         <input type="text" name="customer_name" class="form-control mb-2" required>
 
-                        <label>Barber</label>
+                        <label>Kapster</label>
                         <select name="barber_id" class="form-control mb-2" required>
                             @foreach ($barbers as $b)
                                 <option value="{{ $b->id }}">{{ $b->user->name }}</option>
                             @endforeach
                         </select>
 
-                        <label>Service</label>
-                        <select name="service_id" class="form-control mb-2" required>
-                            @foreach ($services as $s)
-                                <option value="{{ $s->id }}">{{ $s->name }}</option>
-                            @endforeach
-                        </select>
+                       <label>Service</label>
+
+                        @foreach ($services as $s)
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                    name="service_ids[]"
+                                    value="{{ $s->id }}"
+                                    id="walkin_svc{{ $s->id }}">
+
+                                <label class="form-check-label" for="walkin_svc{{ $s->id }}">
+                                    {{ $s->name }} — Rp {{ number_format($s->price) }}
+                                </label>
+                            </div>
+                        @endforeach
                     </div>
 
                     <div class="modal-footer">

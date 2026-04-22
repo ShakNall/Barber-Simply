@@ -37,9 +37,34 @@ class AdminBookingController extends Controller
             ->orderBy('time', 'asc')
             ->get();
 
+        $date = now();
+    
+        $daysMap = [
+            'Sunday' => 'minggu',
+            'Monday' => 'senin',
+            'Tuesday' => 'selasa',
+            'Wednesday' => 'rabu',
+            'Thursday' => 'kamis',
+            'Friday' => 'jumat',
+            'Saturday' => 'sabtu',
+        ];
+
+        $day = $daysMap[$date->format('l')];
+        
+        $startOfMonth = $date->copy()->startOfMonth();
+        $weekNumber = (int) ceil(($date->day + $startOfMonth->dayOfWeek) / 7);
+        
+        if ($weekNumber > 4) {
+            $weekNumber = 4;
+        }
+
         $barbers = ($user->role === 'barber')
             ? Barber::where('id', optional($user->barber)->id)->with('user')->get()
-            : Barber::with('user')->get();
+            : Barber::whereHas('shifts', function ($q) use ($weekNumber, $day) {
+            $q->where('week_number', $weekNumber)
+                ->where('day_of_week', $day)
+                ->where('is_day_off', false);
+        })->with('user')->get();
 
         $services = Service::all();
 
@@ -78,54 +103,64 @@ class AdminBookingController extends Controller
     }
 
     public function walkIn(Request $request)
-    {
-        $request->validate([
-            'customer_name' => 'required',
-            'barber_id' => 'required|exists:barbers,id',
-            'service_id' => 'required|exists:services,id',
-        ]);
+{
+    $request->validate([
+        'customer_name' => 'required',
+        'barber_id'     => 'required|exists:barbers,id',
+        'service_ids'   => 'required|array|min:1',
+        'service_ids.*' => 'exists:services,id',
+    ]);
 
-        $service = Service::findOrFail($request->service_id);
-        $barber = Barber::findOrFail($request->barber_id);
+    $barber = Barber::findOrFail($request->barber_id);
 
-        $isHaircut = strtolower($service->name) === 'haircut';
+    $totalServicePrice = 0;
+    $totalDuration     = 0;
+    $hasHaircut        = false;
 
-        $servicePrice = $isHaircut
-            ? $barber->price
-            : $service->price;
+    foreach ($request->service_ids as $serviceId) {
+        $service = Service::findOrFail($serviceId);
 
-        $barberPrice = $isHaircut
-            ? $barber->price
-            : 0;
+        if (strtolower($service->name) === 'haircut') {
+            $hasHaircut = true;
+        }
 
-        $totalPrice = $servicePrice;
+        $totalServicePrice += $service->price;
+        $totalDuration     += $service->duration;
+    }
 
-        $booking = Booking::create([
-            'booking_code' => 'WI-' . now()->format('YmdHis'),
-            'user_id' => null,
-            'customer_name' => $request->customer_name,
-            'source' => 'walk_in',
+    $barberPrice = $hasHaircut ? $barber->price : 0;
+    $totalPrice  = $totalServicePrice + $barberPrice;
 
-            'barber_id' => $barber->id,
-            'date' => Carbon::now()->format('Y-m-d'),
-            'time' => Carbon::now()->format('H:i:s'),
+    $booking = Booking::create([
+        'booking_code'  => 'WI-' . now()->format('YmdHis'),
+        'user_id'       => null,
+        'customer_name' => $request->customer_name,
+        'source'        => 'walk_in',
 
-            'service_price' => $servicePrice,
-            'barber_price' => $barberPrice,
-            'total_price' => $totalPrice,
+        'barber_id' => $barber->id,
+        'date'      => now()->format('Y-m-d'),
+        'time'      => now()->format('H:i:s'),
 
-            'status' => 'checkin',
-            'payment_status' => 'unpaid',
-        ]);
+        'service_price' => $totalServicePrice,
+        'barber_price'  => $barberPrice,
+        'total_price'   => $totalPrice,
+
+        'status'         => 'checkin',
+        'payment_status' => 'unpaid',
+    ]);
+
+    foreach ($request->service_ids as $serviceId) {
+        $service = Service::findOrFail($serviceId);
 
         $booking->services()->create([
             'service_id' => $service->id,
-            'price' => $servicePrice,
-            'duration' => $service->duration,
+            'price'      => $service->price,
+            'duration'   => $service->duration,
         ]);
-
-        return back()->with('success', 'Order walk-in berhasil dibuat (CHECK-IN).');
     }
+
+    return back()->with('success', 'Order walk-in berhasil dibuat (CHECK-IN).');
+}
 
 
     public function updateServices(Request $request)

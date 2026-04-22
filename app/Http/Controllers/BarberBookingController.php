@@ -29,7 +29,7 @@ class BarberBookingController extends Controller
             ->get()
             ->groupBy('week_number');
 
-        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        $days = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
 
         return view('barber.shifts.index', compact('shifts', 'days'));
     }

@@ -93,7 +93,7 @@
             </div>
 
             <div class="mb-3 text-start">
-                <input type="text" name="phone" class="form-control" placeholder="Phone Number" required>
+                <input type="number" name="phone" class="form-control" placeholder="Phone Number" required>
             </div>
 
             <div class="mb-4 text-start">

@@ -75,71 +75,85 @@ class BookingController extends Controller
         SLOT JAM
     ============================== */
   public function getAvailableSlots(Request $request)
-{
-    $request->validate([
-        'barber_id' => 'required|exists:barbers,id',
-        'date' => 'required|date',
-    ]);
+    {
+        $request->validate([
+            'barber_id' => 'required|exists:barbers,id',
+            'date' => 'required|date',
+        ]);
 
-    $date = \Carbon\Carbon::parse($request->date);
-    
-    $daysMap = [
-        'Sunday' => 'minggu',
-        'Monday' => 'senin',
-        'Tuesday' => 'selasa',
-        'Wednesday' => 'rabu',
-        'Thursday' => 'kamis',
-        'Friday' => 'jumat',
-        'Saturday' => 'sabtu',
-    ];
+        $date = \Carbon\Carbon::parse($request->date);
+        
+        $daysMap = [
+            'Sunday' => 'minggu',
+            'Monday' => 'senin',
+            'Tuesday' => 'selasa',
+            'Wednesday' => 'rabu',
+            'Thursday' => 'kamis',
+            'Friday' => 'jumat',
+            'Saturday' => 'sabtu',
+        ];
 
-    $day = $daysMap[$date->format('l')];
-    
-    $startOfMonth = $date->copy()->startOfMonth();
-    $weekNumber = (int) ceil(($date->day + $startOfMonth->dayOfWeek) / 7);
-    
-    if ($weekNumber > 4) {
-        $weekNumber = 4;
-    }
+        $day = $daysMap[$date->format('l')];
+        
+        $startOfMonth = $date->copy()->startOfMonth();
+        $weekNumber = (int) ceil(($date->day + $startOfMonth->dayOfWeek) / 7);
+        
+        if ($weekNumber > 4) {
+            $weekNumber = 4;
+        }
 
-    $shift = BarberShift::where('barber_id', $request->barber_id)
-        ->where('week_number', $weekNumber)
-        ->where('day_of_week', $day)
-        ->where('is_day_off', false)
-        ->first();
+        $shift = BarberShift::where('barber_id', $request->barber_id)
+            ->where('week_number', $weekNumber)
+            ->where('day_of_week', $day)
+            ->where('is_day_off', false)
+            ->first();
 
-    if (!$shift) {
+        if (!$shift) {
+            return response()->json([
+                'allSlots' => [],
+                'bookedSlots' => [],
+            ]);
+        }
+
+        $start = Carbon::parse($shift->start_time)->minute(0);
+        $end = Carbon::parse($shift->end_time);
+
+        $slots = [];
+        $cursor = $start->copy();
+
+        while ($cursor->lt($end)) {
+            $slots[] = $cursor->format('H:i');
+            $cursor->addHour();
+        }
+
+        $bookedSlots = [];
+
+        $bookings = Booking::with('services')
+            ->where('barber_id', $request->barber_id)
+            ->where('date', $request->date)
+            ->get();
+
+        foreach ($bookings as $b) {
+            $start = Carbon::parse($b->time);
+            $end   = $start->copy()->addMinutes(
+                $b->services->sum('duration')
+            );
+
+            $cursor = $start->copy();
+
+            while ($cursor < $end) {
+                $bookedSlots[] = $cursor->format('H:i');
+                $cursor->addHour(); // karena slot kamu per jam
+            }
+        }
+
+        $bookedSlots = collect($bookedSlots)->unique()->values();
+
         return response()->json([
-            'allSlots' => [],
-            'bookedSlots' => [],
+            'allSlots' => $slots,
+            'bookedSlots' => $bookedSlots,
         ]);
     }
-
-    $start = \Carbon\Carbon::parse($shift->start_time)->minute(0);
-    $end = \Carbon\Carbon::parse($shift->end_time);
-
-    $slots = [];
-    $cursor = $start->copy();
-
-    while ($cursor->lt($end)) {
-        $slots[] = $cursor->format('H:i');
-        $cursor->addHour();
-    }
-
-    $booked = \App\Models\Booking::where('barber_id', $request->barber_id)
-        ->where('date', $request->date)
-        ->pluck('time')
-        ->map(function ($time) {
-            return \Carbon\Carbon::parse($time)->minute(0)->format('H:i');
-        })
-        ->unique()
-        ->values();
-
-    return response()->json([
-        'allSlots' => $slots,
-        'bookedSlots' => $booked,
-    ]);
-}
     public function store(Request $request)
     {
         $request->validate([
@@ -247,7 +261,6 @@ class BookingController extends Controller
 
         return view('booking.history', compact('bookings', 'search'));
     }
-
 
     public function cancel(Booking $booking)
     {

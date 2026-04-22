@@ -262,6 +262,11 @@
                     <span>Rp <span id="sumGrandTotal"></span></span>
                 </h4>
 
+                <div class="alert alert-warning mt-3">
+    ⏰ Harap datang maksimal <b>15 menit</b> dari jam booking. 
+    Jika terlambat, booking akan dibatalkan.
+            </div>
+
                 <form method="POST" action="{{ route('booking.store') }}" id="bookingForm">
                     @csrf
                     <input type="hidden" name="date" id="formDate">
@@ -292,9 +297,14 @@
         /* =====================
            DATE
         ===================== */
-        flatpickr("#date", {
-            minDate: "today",
-            dateFormat: "Y-m-d"
+            flatpickr("#date", {
+            minDate: new Date().fp_incr(1),
+            dateFormat: "Y-m-d",
+            disable: [
+                function(date) {
+                    return (date.getDay() === 5);
+                }
+            ]
         });
 
         document.getElementById("nextToBarber").onclick = () => {

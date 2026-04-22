@@ -22,13 +22,26 @@
                     <tr>
                         <td>{{ $loop->iteration }}</td>
                         <td>{{ \Carbon\Carbon::parse($b->date)->format('d M Y') }}</td>
-                        <td>{{ \Carbon\Carbon::parse($b->time)->format('H:i') }}</td>
+                        @php
+                            $start = \Carbon\Carbon::parse($b->time);
+                            $duration = $b->services->sum('duration'); // total menit
+                            $end = $start->copy()->addMinutes($duration);
+                        @endphp
+
+                        <td>
+                            {{ $start->format('H:i') }} - {{ $end->format('H:i') }}
+                        </td>
                         <td>{{ $b->customer_label }}</td>
                         <td>{{ $b->barber->user->name  ?? 'Kapster dihapus' }}</td>
                         <td>
                             @foreach ($b->services as $svc)
-                                <span class="badge badge-info">{{ $svc->service->name }}</span>
+                                <span class="badge badge-info">
+                                    {{ $svc->service->name }}
+                                </span>
                             @endforeach
+
+                            <br>
+                            Durasi: {{ $b->services->sum('duration') }} menit
                         </td>
                         <td>
                             <span class="badge {{ $b->source === 'walk_in' ? 'badge-dark' : 'badge-primary' }}">
