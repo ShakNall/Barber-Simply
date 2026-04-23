@@ -24,6 +24,7 @@ class BarberController extends Controller
         $request->validate([
             'name'       => 'required|string',
             'email'      => 'required|email|unique:users,email',
+            'phone'      => 'required|numeric', // Tambahkan validasi phone
             'password'   => 'required|min:6',
 
             'nickname'   => 'nullable|string',
@@ -35,10 +36,11 @@ class BarberController extends Controller
 
         // ================= USER =================
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => 'barber',
+            'name'      => $request->name,
+            'email'     => $request->email,
+            'phone'     => $request->phone, // Tambahkan ini agar tersimpan ke tabel users
+            'password'  => Hash::make($request->password),
+            'role'      => 'barber',
             'is_active' => true,
         ]);
 
@@ -68,6 +70,7 @@ class BarberController extends Controller
         $request->validate([
             'name'       => 'required|string',
             'email'      => 'required|email|unique:users,email,' . $barber->user_id,
+            'phone'      => 'required|numeric', // Tambahkan validasi phone
 
             'nickname'   => 'nullable|string',
             'speciality' => 'nullable|string',
@@ -80,6 +83,7 @@ class BarberController extends Controller
         $barber->user->update([
             'name'  => $request->name,
             'email' => $request->email,
+            'phone' => $request->phone, // Tambahkan ini agar nomor HP terupdate
         ]);
 
         // update barber
@@ -98,8 +102,6 @@ class BarberController extends Controller
     public function destroy($id)
     {
         $barber = Barber::with('user')->findOrFail($id);
-
-        // optional: hapus user juga
         $barber->user->delete();
         $barber->delete();
 

@@ -90,7 +90,8 @@
                                                     <div class="input-group-prepend">
                                                         <span class="input-group-text"><i class="fe fe-phone"></i></span>
                                                     </div>
-                                                    <input name="phone" value="{{ $u->phone }}" class="form-control">
+                                                    {{-- Input No HP hanya angka --}}
+                                                    <input name="phone" value="{{ $u->phone }}" class="form-control" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                                                 </div>
 
                                                 <label>Password (opsional)</label>
@@ -101,15 +102,6 @@
                                                     <input name="password" type="password" class="form-control"
                                                         placeholder="Kosongkan jika tidak diubah">
                                                 </div>
-
-                                                {{-- <label>Role</label>
-                                                <select name="role" class="form-control">
-                                                    @foreach (['admin', 'owner', 'customer', 'barber'] as $role)
-                                                    <option value="{{ $role }}" {{ $u->role == $role ? 'selected' : '' }}>
-                                                        {{ ucfirst($role) }}
-                                                    </option>
-                                                    @endforeach
-                                                </select> --}}
 
                                             </div>
 
@@ -197,7 +189,8 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="fe fe-phone"></i></span>
                                 </div>
-                                <input name="phone" class="form-control">
+                                {{-- Input No HP hanya angka --}}
+                                <input name="phone" class="form-control" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                             </div>
 
                             <label>Password</label>

@@ -159,7 +159,7 @@
         {{-- STEP 1 : TANGGAL --}}
         <div id="step1" class="step-page active slide-right">
             <h4>Pilih Tanggal</h4>
-            <input type="text" id="date" class="form-control col-md-4 mb-3">
+            <input type="text" id="date" class="form-control col-md-4 mb-3" placeholder="Tekan untuk memilih tanggal">
             <button class="btn btn-primary" id="nextToBarber">Lanjut</button>
         </div>
 

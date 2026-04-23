@@ -32,7 +32,8 @@
 
                         <div class="form-group mb-3">
                             <label class="form-label fw-semibold">No HP</label>
-                            <input type="text" name="phone" class="form-control" value="{{ old('phone', $user->phone) }}">
+                            {{-- Hanya angka yang bisa dimasukkan melalui oninput --}}
+                            <input type="text" name="phone" class="form-control" value="{{ old('phone', $user->phone) }}" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                         </div>
 
                         <div class="form-group mb-3">
