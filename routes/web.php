@@ -36,6 +36,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/history', [BookingController::class, 'history'])->name('booking.history');
     Route::patch('/booking/{booking}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
+    Route::post('/booking/slots-by-date', [BookingController::class, 'getSlotsByDate']);
 
     Route::post('/booking/barbers', [BookingController::class, 'getAvailableBarbers']);
 

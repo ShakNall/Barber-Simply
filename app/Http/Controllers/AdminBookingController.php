@@ -130,6 +130,30 @@ class AdminBookingController extends Controller
 
     $barberPrice = $hasHaircut ? $barber->price : 0;
     $totalPrice  = $totalServicePrice + $barberPrice;
+  // cek apakah ada input time
+if ($request->time) {
+    $time = $request->time;
+} else {
+    // ambil booking terakhir barber hari ini
+    $lastBooking = Booking::where('barber_id', $barber->id)
+        ->where('type','walkin')
+        ->whereDate('date', now()->format('Y-m-d'))
+        ->orderBy('time', 'desc')
+        ->first();
+
+    if ($lastBooking) {
+        // hitung total durasi booking terakhir
+        $lastDuration = $lastBooking->services->sum('duration');
+
+        // waktu terakhir + durasi
+        $time = \Carbon\Carbon::parse($lastBooking->time)
+            ->addMinutes($lastDuration)
+            ->format('H:i:s');
+    } else {
+        // kalau belum ada booking sama sekali
+        $time = now()->format('H:i:s');
+    }
+}
 
     $booking = Booking::create([
         'booking_code'  => 'WI-' . now()->format('YmdHis'),
@@ -139,7 +163,8 @@ class AdminBookingController extends Controller
 
         'barber_id' => $barber->id,
         'date'      => now()->format('Y-m-d'),
-        'time'      => now()->format('H:i:s'),
+        'time' => $time,
+        'type' => $request->time ? 'wa' : 'walkin',
 
         'service_price' => $totalServicePrice,
         'barber_price'  => $barberPrice,

@@ -88,7 +88,7 @@ class DatabaseSeeder extends Seeder
 
         foreach ($barbers as $index => $b) {
             $user = User::create([
-                'name'     => 'By ' . $b[0],
+                'name'     => $b[0],
                 'email'    => $b[1],
                 'phone'    => $b[3],
                 'password' => Hash::make('password'),

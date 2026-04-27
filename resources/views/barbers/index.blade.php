@@ -167,7 +167,7 @@
                             
                             {{-- Input No HP Baru --}}
                             <input name="phone" type="text" class="form-control mb-2" 
-                                placeholder="No. HP (Contoh: 08123456789)" 
+                                placeholder="No. HP" 
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '');" required>
                             
                             <input name="password" type="password" class="form-control mb-3" placeholder="Password" required>

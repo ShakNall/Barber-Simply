@@ -154,6 +154,9 @@
                             @endforeach
                         </select>
 
+                         <label>Jam </label>
+                        <input type="time" name="time" class="form-control mb-2">
+
                        <label>Service</label>
 
                         @foreach ($services as $s)

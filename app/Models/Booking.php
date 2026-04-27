@@ -16,6 +16,7 @@ class Booking extends Model
         'date',
         'time',
         'customer_name',
+        'type',
         'source',
         'status',
         'service_price',
