@@ -258,6 +258,8 @@ class BookingController extends Controller
         $booking = Booking::create([
             'booking_code' => 'BOOK-' . strtoupper(uniqid()),
             'user_id'      => auth()->id(),
+            'customer_name' => auth()->user()->name,
+            'source' => 'online',
             'barber_id'    => $barber->id,
             'date'         => $request->date,
             'time'         => $startTime,
@@ -279,35 +281,39 @@ class BookingController extends Controller
         return redirect()->route('booking.history')->with('success', 'Booking berhasil dibuat');
     }
 
-    public function history(Request $request)
-    {
-        $search = $request->query('search');
+  public function history(Request $request)
+{
+    $search = $request->query('search');
+    $status = $request->query('status');
 
-        $bookings = Booking::with(['barber.user', 'services.service'])
-            ->where('user_id', auth()->id())
-            ->when($search, function ($q) use ($search) {
-                $q->whereHas('services.service', function ($qs) use ($search) {
-                    $qs->where('name', 'like', "%{$search}%");
-                })->orWhereHas('barber.user', function ($qb) use ($search) {
-                    $qb->where('name', 'like', "%{$search}%");
-                });
-            })
-            ->orderByRaw("
-                CASE status
-                    WHEN 'pending'   THEN 1
-                    WHEN 'confirmed' THEN 2
-                    WHEN 'completed' THEN 3
-                    WHEN 'canceled'  THEN 4
-                    ELSE 5
-                END
-            ")
-            ->orderBy('date', 'desc')
-            ->orderBy('time', 'desc')
-            ->paginate(3)
-            ->withQueryString();
+    $bookings = Booking::with(['barber.user', 'services.service'])
+        ->where('user_id', auth()->id())
+        ->when($search, function ($q) use ($search) {
+            $q->whereHas('services.service', function ($qs) use ($search) {
+                $qs->where('name', 'like', "%{$search}%");
+            })->orWhereHas('barber.user', function ($qb) use ($search) {
+                $qb->where('name', 'like', "%{$search}%");
+            });
+        })
+        ->when($status, function ($q) use ($status) {
+            $q->where('status', $status);
+        })
+        ->orderByRaw("
+            CASE status
+                WHEN 'pending'   THEN 1
+                WHEN 'confirmed' THEN 2
+                WHEN 'completed' THEN 3
+                WHEN 'canceled'  THEN 4
+                ELSE 5
+            END
+        ")
+        ->orderBy('date', 'desc')
+        ->orderBy('time', 'desc')
+        ->paginate(3)
+        ->withQueryString();
 
-        return view('booking.history', compact('bookings', 'search'));
-    }
+    return view('booking.history', compact('bookings', 'search', 'status'));
+}
 
     public function cancel(Booking $booking)
     {

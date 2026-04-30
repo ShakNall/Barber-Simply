@@ -74,16 +74,30 @@
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
 
-        <form method="GET" class="mb-4">
-            <div class="input-group">
-                <input type="text" name="search" value="{{ request('search') }}" class="form-control"
-                    placeholder="Cari service atau barber...">
-                <button class="btn btn-primary">
-                    Cari
-                </button>
-            </div>
-        </form>
-
+      <form method="GET" class="mb-4">
+    <div class="row g-2">
+        <div class="col">
+            <input type="text" name="search" value="{{ request('search') }}" class="form-control"
+                placeholder="Cari service atau barber...">
+        </div>
+        <div class="col-auto">
+            <select name="status" class="form-control">
+                <option value="">Semua Status</option>
+                <option value="pending"   {{ request('status') == 'pending'   ? 'selected' : '' }}>Pending</option>
+                <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                <option value="checkin"   {{ request('status') == 'checkin'   ? 'selected' : '' }}>Check-in</option>
+                <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                <option value="canceled"  {{ request('status') == 'canceled'  ? 'selected' : '' }}>Canceled</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary">Cari</button>
+            @if(request('search') || request('status'))
+                <a href="{{ route('booking.history') }}" class="btn btn-outline-secondary">Reset</a>
+            @endif
+        </div>
+    </div>
+</form>
 
         @forelse ($bookings as $booking)
             <div class="booking-card shadow-sm">

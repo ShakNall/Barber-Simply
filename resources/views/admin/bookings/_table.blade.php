@@ -31,7 +31,7 @@
                         <td>
                             {{ $start->format('H:i') }} - {{ $end->format('H:i') }}
                         </td>
-                        <td>{{ $b->customer_label }}</td>
+                        <td>{{ $b->customer_name }}</td>
                         <td>{{ $b->barber->user->name  ?? 'Kapster dihapus' }}</td>
                         <td>
                             @foreach ($b->services as $svc)

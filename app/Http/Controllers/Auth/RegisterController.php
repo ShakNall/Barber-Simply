@@ -46,15 +46,30 @@ class RegisterController extends Controller
      * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
-    protected function validator(array $data)
-    {
-        return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'phone' => ['required', 'string', 'max:255']
-        ]);
-    }
+  protected function validator(array $data)
+{
+    return Validator::make($data, [
+        'name'     => ['required', 'string', 'max:255'],
+        'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
+        'password' => ['required', 'string', 'min:8', 'confirmed'],
+        'phone'    => ['required', 'numeric'],
+    ], [
+        'name.required'      => 'Nama wajib diisi.',
+        'name.max'           => 'Nama maksimal 255 karakter.',
+
+        'email.required'     => 'Email wajib diisi.',
+        'email.email'        => 'Format email tidak valid.',
+        'email.max'          => 'Email maksimal 255 karakter.',
+        'email.unique'       => 'Email sudah terdaftar, gunakan email lain.',
+
+        'password.required'  => 'Password wajib diisi.',
+        'password.min'       => 'Password minimal 8 karakter.',
+        'password.confirmed' => 'Konfirmasi password tidak cocok.',
+
+        'phone.required'     => 'Nomor telepon wajib diisi.',
+        'phone.numeric'      => 'Nomor telepon hanya boleh berisi angka.',
+    ]);
+}
 
     /**
      * Create a new user instance after a valid registration.

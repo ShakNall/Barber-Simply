@@ -19,9 +19,15 @@
             <div class="card-body d-flex justify-content-between align-items-center">
                 <h3 class="fw-bold mb-0">Data Booking & Order</h3>
 
-                <button class="btn btn-success" data-toggle="modal" data-target="#modalWalkIn">
+               <div>
+                 <button class="btn btn-success" data-toggle="modal" data-target="#modalWalkIn">
                     <i class="fe fe-plus"></i> Walkin
                 </button>
+                <a href="{{ route('admin.booking.create') }}" class="btn btn-info">
+    <i class="fe fe-plus"></i> Online
+</a>
+               </div>
+            </div>
             </div>
         </div>
 
@@ -153,9 +159,9 @@
                                 <option value="{{ $b->id }}">{{ $b->user->name }}</option>
                             @endforeach
                         </select>
-
+<!-- 
                          <label>Jam </label>
-                        <input type="time" name="time" class="form-control mb-2">
+                        <input type="time" name="time" class="form-control mb-2"> -->
 
                        <label>Service</label>
 

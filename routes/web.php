@@ -41,6 +41,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking/barbers', [BookingController::class, 'getAvailableBarbers']);
 
     Route::get('/admin/bookings', [AdminBookingController::class, 'index'])->name('admin.bookings.index');
+    Route::get('/admin/booking/create', [AdminBookingController::class, 'create'])->name('admin.booking.create');
+     Route::post('/admin/booking/store', [AdminBookingController::class, 'store'])->name('admin.bookings.store');
     Route::post('/admin/bookings/update-status', [AdminBookingController::class, 'updateStatus'])->name('admin.bookings.updateStatus');
     Route::post('/admin/bookings/complete', [AdminBookingController::class, 'complete'])
         ->name('admin.bookings.complete');

@@ -1,8 +1,14 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use App\Models\Booking;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+Schedule::call(function () {
+    \Log::info('Cron job jalan!'); // Tambahkan log ini buat bukti
+    $expiredCount = \App\Models\Booking::where('status', 'pending')
+        ->where('date', '<', now()->subDay())
+        ->update(['status' => 'canceled']);
+    
+    \Log::info("Berhasil membatalkan: " . $expiredCount);
+})->everyMinute(); // GANTI INI SEMENTARA

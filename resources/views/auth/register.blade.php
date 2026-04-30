@@ -93,17 +93,12 @@
             </div>
 
             <div class="mb-3 text-start">
-                <input type="number" name="phone" class="form-control" placeholder="Phone Number" required>
+                <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" placeholder="Phone Number" required>
+                  @error('phone')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
-
-            <div class="mb-4 text-start">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="terms" required>
-                    <label class="form-check-label" for="terms">
-                        Agree with <strong>Terms And Conditions</strong>
-                    </label>
-                </div>
-            </div>
+            
 
             <button type="submit" class="btn btn-black">Sign Up</button>
 

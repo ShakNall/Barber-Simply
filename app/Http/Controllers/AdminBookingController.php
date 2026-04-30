@@ -8,6 +8,8 @@ use App\Models\Booking;
 use App\Models\Service;
 use Carbon\Carbon;
 
+use App\Models\BookingService;
+
 class AdminBookingController extends Controller
 {
     public function index(Request $request)
@@ -86,20 +88,85 @@ class AdminBookingController extends Controller
         return back()->with('success', 'Status booking berhasil diperbarui.');
     }
 
-    public function complete(Request $request)
+    public function create()
+{
+    $services = Service::all();
+    $barbers  = Barber::with('user')->get();
+
+    return view('admin.bookings.create', compact('services', 'barbers'));
+}
+
+public function store(Request $request)
     {
         $request->validate([
-            'id' => 'required',
-            'payment_method' => 'required|in:cash,qris,transfer',
+            'barber_id'    => 'required|exists:barbers,id',
+            'service_ids'  => 'required|array|min:1',
+            'service_ids.*'=> 'exists:services,id',
+            'date'         => 'required|date',
+            'time'         => 'required',
         ]);
 
-        $booking = Booking::findOrFail($request->id);
-        $booking->status = 'completed';
-        $booking->payment_method = $request->payment_method;
-        $booking->payment_status = 'paid';
-        $booking->save();
+        $barber   = Barber::findOrFail($request->barber_id);
+        $services = Service::whereIn('id', $request->service_ids)->get();
 
-        return back()->with('success', 'Booking berhasil diselesaikan.');
+        $totalDuration = 0;
+        $totalPrice    = 0;
+        $hasHaircut    = false;
+
+        foreach ($services as $service) {
+            $totalDuration += $service->duration;
+
+            if (strtolower($service->name) === 'haircut') {
+                $totalPrice += $barber->price;
+                $hasHaircut  = true;
+            } else {
+                $totalPrice += $service->price;
+            }
+        }
+
+        $startTime = Carbon::parse($request->time);
+        $endTime   = $startTime->copy()->addMinutes($totalDuration);
+
+        $existing = Booking::with('services')
+            ->where('barber_id', $barber->id)
+            ->where('date', $request->date)
+            ->get();
+
+        foreach ($existing as $b) {
+            $bStart = Carbon::parse($b->time);
+            $bEnd   = $bStart->copy()->addMinutes($b->services->sum('duration'));
+
+            if ($startTime < $bEnd && $endTime > $bStart) {
+                return back()->with('error', 'Waktu bentrok dengan booking lain');
+            }
+        }
+
+        $adminFee = 5000;
+
+        $booking = Booking::create([
+            'booking_code' => 'BOOK-' . strtoupper(uniqid()),
+            'user_id'      => auth()->id(),
+            'barber_id'    => $barber->id,
+            'source'       => 'online',
+            'customer_name' => $request->customer_name,
+            'date'         => $request->date,
+            'time'         => $startTime,
+            'barber_price' => $hasHaircut ? $barber->price : 0,
+            'service_price'=> $totalPrice,
+            'total_price'  => $totalPrice + $adminFee,
+            'status'       => 'pending',
+        ]);
+
+        foreach ($services as $service) {
+            BookingService::create([
+                'booking_id' => $booking->id,
+                'service_id' => $service->id,
+                'price'      => strtolower($service->name) === 'haircut' ? $barber->price : $service->price,
+                'duration'   => $service->duration,
+            ]);
+        }
+
+        return redirect()->route('admin.bookings.index')->with('success', 'Booking berhasil dibuat');
     }
 
     public function walkIn(Request $request)
@@ -119,64 +186,47 @@ class AdminBookingController extends Controller
 
     foreach ($request->service_ids as $serviceId) {
         $service = Service::findOrFail($serviceId);
-
-        if (strtolower($service->name) === 'haircut') {
-            $hasHaircut = true;
-        }
-
+        if (strtolower($service->name) === 'haircut') $hasHaircut = true;
         $totalServicePrice += $service->price;
         $totalDuration     += $service->duration;
     }
 
     $barberPrice = $hasHaircut ? $barber->price : 0;
     $totalPrice  = $totalServicePrice + $barberPrice;
-  // cek apakah ada input time
-if ($request->time) {
-    $time = $request->time;
-} else {
-    // ambil booking terakhir barber hari ini
+
     $lastBooking = Booking::where('barber_id', $barber->id)
-        ->where('type','walkin')
+        ->where('type', 'walkin')
         ->whereDate('date', now()->format('Y-m-d'))
         ->orderBy('time', 'desc')
         ->first();
 
     if ($lastBooking) {
-        // hitung total durasi booking terakhir
         $lastDuration = $lastBooking->services->sum('duration');
-
-        // waktu terakhir + durasi
         $time = \Carbon\Carbon::parse($lastBooking->time)
             ->addMinutes($lastDuration)
             ->format('H:i:s');
     } else {
-        // kalau belum ada booking sama sekali
         $time = now()->format('H:i:s');
     }
-}
 
     $booking = Booking::create([
-        'booking_code'  => 'WI-' . now()->format('YmdHis'),
-        'user_id'       => null,
-        'customer_name' => $request->customer_name,
-        'source'        => 'walk_in',
-
-        'barber_id' => $barber->id,
-        'date'      => now()->format('Y-m-d'),
-        'time' => $time,
-        'type' => $request->time ? 'wa' : 'walkin',
-
-        'service_price' => $totalServicePrice,
-        'barber_price'  => $barberPrice,
-        'total_price'   => $totalPrice,
-
+        'booking_code'   => 'WI-' . now()->format('YmdHis'),
+        'user_id'        => null,
+        'customer_name'  => $request->customer_name,
+        'source'         => 'walk_in',
+        'barber_id'      => $barber->id,
+        'date'           => now()->format('Y-m-d'),
+        'time'           => $time,
+        'type'           => $request->time ? 'wa' : 'walkin',
+        'service_price'  => $totalServicePrice,
+        'barber_price'   => $barberPrice,
+        'total_price'    => $totalPrice,
         'status'         => 'checkin',
         'payment_status' => 'unpaid',
     ]);
 
     foreach ($request->service_ids as $serviceId) {
         $service = Service::findOrFail($serviceId);
-
         $booking->services()->create([
             'service_id' => $service->id,
             'price'      => $service->price,
@@ -185,6 +235,48 @@ if ($request->time) {
     }
 
     return back()->with('success', 'Order walk-in berhasil dibuat (CHECK-IN).');
+}
+
+public function complete(Request $request)
+{
+    $request->validate([
+        'id'             => 'required',
+        'payment_method' => 'required|in:cash,qris,transfer',
+    ]);
+
+    $booking = Booking::findOrFail($request->id);
+    $booking->status         = 'completed';
+    $booking->payment_method = $request->payment_method;
+    $booking->payment_status = 'paid';
+    $booking->save();
+
+    // ✅ Geser waktu walk-in berikutnya jika selesai lebih awal
+    $completedAt  = now(); // waktu aktual selesai
+    $bookingDuration = $booking->services->sum('duration');
+    $scheduledEnd = \Carbon\Carbon::parse($booking->time)->addMinutes($bookingDuration);
+
+   if ($completedAt->lt($scheduledEnd)) {
+    $nextBookings = Booking::where('barber_id', $booking->barber_id)
+        ->where('type', 'walkin')
+        ->whereDate('date', now()->format('Y-m-d'))
+        ->whereIn('status', ['checkin', 'pending'])
+        ->where('time', '>', $booking->time)
+        ->orderBy('time', 'asc')
+        ->get();
+
+    $nextStart = $completedAt; // mulai dari jam selesai sekarang
+
+    foreach ($nextBookings as $next) {
+        $next->time = $nextStart->format('H:i:s');
+        $next->save();
+
+        // geser pointer untuk booking berikutnya (berantai)
+        $nextDuration = $next->services->sum('duration');
+        $nextStart = $nextStart->copy()->addMinutes($nextDuration);
+    }
+}
+
+    return back()->with('success', 'Booking berhasil diselesaikan.');
 }
 
 

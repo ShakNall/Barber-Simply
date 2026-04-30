@@ -56,12 +56,6 @@ class Booking extends Model
         return $this->service_price + $this->barber_price;
     }
 
-    public function getCustomerLabelAttribute()
-    {
-        return $this->source === 'walk_in'
-            ? $this->customer_name
-            : optional($this->user)->name;
-    }
 
     public function services()
     {
