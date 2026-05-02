@@ -15,21 +15,24 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="card mb-3">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <h3 class="fw-bold mb-0">Data Booking & Order</h3>
+<div class="card mb-3">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <h3 class="fw-bold mb-0">Data Booking & Order</h3>
 
-               <div>
-                 <button class="btn btn-success" data-toggle="modal" data-target="#modalWalkIn">
-                    <i class="fe fe-plus"></i> Walkin
-                </button>
+        <div>
+            <button class="btn btn-success" data-toggle="modal" data-target="#modalWalkIn">
+                <i class="fe fe-plus"></i> Walkin
+            </button>
+
+            {{-- Tombol Online disembunyikan jika role adalah barber --}}
+            @if(auth()->user()->role !== 'barber')
                 <a href="{{ route('admin.booking.create') }}" class="btn btn-info">
-    <i class="fe fe-plus"></i> Online
-</a>
-               </div>
-            </div>
-            </div>
+                    <i class="fe fe-plus"></i> Online
+                </a>
+            @endif
         </div>
+    </div>
+</div>
 
         <div class="card p-3 shadow-sm mb-4">
             <form method="GET" class="row align-items-end">
