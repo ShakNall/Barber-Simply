@@ -8,25 +8,30 @@ use Carbon\Carbon;
 
 class AutoCancelBooking extends Command
 {
-    // Nama command yang akan dipanggil di terminal
+    // Nama command
     protected $signature = 'booking:auto-cancel';
 
-    // Deskripsi singkat
-    protected $description = 'Batalkan booking yang statusnya pending lebih dari 24 jam';
+    // Deskripsi
+    protected $description = 'Batalkan booking pending & confirmed jika sudah melewati hari H';
 
     public function handle()
     {
-        // Cari booking dengan status pending yang dibuat lebih dari 24 jam yang lalu
-        $expiredBookings = Booking::where('status', 'pending')
-            ->where('date', '<', Carbon::now()->subDay())
+        // 1. Ambil tanggal hari ini (jam 00:00:00)
+        $today = Carbon::today();
+
+        $expiredBookings = Booking::whereIn('status', ['pending', 'confirmed'])
+            ->where('date', '<', $today)
             ->get();
 
         $count = $expiredBookings->count();
 
-        foreach ($expiredBookings as $booking) {
-            $booking->update(['status' => 'canceled']);
+        if ($count > 0) {
+            foreach ($expiredBookings as $booking) {
+                $booking->update(['status' => 'canceled']);
+            }
+            $this->info("Berhasil membatalkan {$count} booking (Pending/Confirmed) yang sudah lewat hari.");
+        } else {
+            $this->info("Tidak ada booking yang kedaluwarsa hari ini.");
         }
-
-        $this->info("Berhasil membatalkan {$count} booking yang kedaluwarsa.");
     }
 }
